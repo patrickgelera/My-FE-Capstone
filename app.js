@@ -15,7 +15,8 @@ app.post("/post", (req, res) => {
   console.log("Connected to React");
   res.redirect("/");
 });
-
+const chatbox = []
+let id = 0
 const PORT = process.env.PORT || 8888;
 const io = new Server(server, {
   cors: {
@@ -27,14 +28,19 @@ const io = new Server(server, {
 })
 
 io.on("connection", (socket) => {
-  console.log("New client connected");
-  socket.on("hello", () => {
-      console.log("Hello");
-      io.emit('received')
-  })
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-  });
+    socket.on("sendMessage", (data) => {
+        
+        id++
+        chatbox.push({id:id,name:data.name, message:data.message})
+        io.emit('received', { name:data.name,message:data.message, id:id })
+        console.log(chatbox)
+    })
+    socket.on("canvasData", (data) => {
+        socket.broadcast.emit("canvasData",data)
+    })
+    socket.on("disconnect", () => {
+        console.log("Client disconnected");
+    });
 });
 
 server.listen(8888, () => {
