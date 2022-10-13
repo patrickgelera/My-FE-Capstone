@@ -16,7 +16,9 @@ app.post("/post", (req, res) => {
   res.redirect("/");
 });
 const chatbox = []
+var canvas
 let id = 0
+let login = 0
 const PORT = process.env.PORT || 8888;
 const io = new Server(server, {
   cors: {
@@ -29,17 +31,26 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
     socket.on("sendMessage", (data) => {
-        
         id++
         chatbox.push({id:id,name:data.name, message:data.message})
         io.emit('received', { name:data.name,message:data.message, id:id })
-        console.log(chatbox)
+    })
+    socket.on("login", () => {
+        login = 1
+        socket.emit("loggedin", login)
+    })
+    socket.on("clearCanvas", () => {
+        io.emit("clearCanvas")
+        canvas = "";
     })
     socket.on("canvasData", (data) => {
+        canvas = data
         socket.broadcast.emit("canvasData",data)
     })
+    socket.on("getCanvas", () => {
+        socket.emit("canvasData",canvas)
+    })
     socket.on("disconnect", () => {
-        console.log("Client disconnected");
     });
 });
 
